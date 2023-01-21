@@ -7,9 +7,8 @@ connectToMongo();
 
 const app=express();
 
-app.get('/',(req,res)=>{
-    res.send('this is main path');
-})
+//available routes 
+app.use('/api/auth',require('./routes/auth'))
 
 app.listen(PORT,()=>{
     console.log(`listining at http://localhost:${PORT}`)
