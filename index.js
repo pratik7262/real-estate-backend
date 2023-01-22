@@ -1,7 +1,7 @@
 const connectToMongo=require('./db');
 const express=require('express');
 
-const PORT=3000
+const PORT=5000
 
 connectToMongo();
 
