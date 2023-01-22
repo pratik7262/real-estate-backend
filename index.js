@@ -7,6 +7,8 @@ connectToMongo();
 
 const app=express();
 
+app.use(express.json())
+
 //available routes 
 app.use('/api/auth',require('./routes/auth'))
 
