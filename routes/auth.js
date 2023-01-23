@@ -4,6 +4,7 @@ const bcrypt = require("bcrypt");
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 const router = express.Router();
+const getUser = require("../middleware/fetchUser");
 const JWT_SECRET = require("../config");
 
 //Create User Endpont login not required
@@ -74,7 +75,7 @@ router.post(
         });
       }
 
-      const passwordCompare =await bcrypt.compare(password, user.password);
+      const passwordCompare = await bcrypt.compare(password, user.password);
 
       if (!passwordCompare) {
         return res.status(400).json({
@@ -96,5 +97,15 @@ router.post(
     }
   }
 );
+
+router.post("/fetchuser", getUser, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const user = await User.findById(userId).select("-password");
+    res.status(200).send(user);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
 
 module.exports = router;
