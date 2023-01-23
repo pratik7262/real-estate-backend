@@ -1,7 +1,11 @@
 const { body, validationResult } = require("express-validator");
 const express = require("express");
+const bcrypt = require('bcrypt');
 const User = require("../models/User");
+const jwt = require('jsonwebtoken');
 const router = express.Router();
+const JWT_SECRET=require('../config')
+
 
 //Create User Endpont login not required
 router.post(
@@ -25,13 +29,25 @@ router.post(
           err: "Please Enter Unique Email User With This Email Already Exist",
         });
       }
+
+      let salt=await bcrypt.genSalt(5);
+      let seccPass=await bcrypt.hash(req.body.password,salt)
+
       user = await User.create({
         name: req.body.name,
-        password: req.body.password,
+        password: seccPass,
         email: req.body.email,
       });
 
-      res.json(user);
+      const data={
+        user:{
+          id:user.id
+        }
+      }
+
+      const authToken=jwt.sign(data,JWT_SECRET)
+
+      res.json({authToken});
     } catch (error) {
         res.json(error)
     }
