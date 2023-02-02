@@ -6,6 +6,8 @@ const jwt = require("jsonwebtoken");
 const router = express.Router();
 const getUser = require("../middleware/fetchUser");
 const JWT_SECRET = require("../config");
+const sendEmail = require("../utils/email");
+const Token = require("../models/token");
 
 //Create User Endpont login not required
 router.post(
@@ -46,15 +48,37 @@ router.post(
           id: user.id,
         },
       };
-      success = true;
+    
       const authToken = jwt.sign(data, JWT_SECRET);
 
-      res.json({ success, authToken });
+
+      const msg=`http://localhost:5000/api/auth/verify/${user._id}/${authToken}`;
+      await sendEmail(req.body.email,"verify email",msg)
+
+      const responseMsg='Verifation link is sent to your email please verify your account';
+      success=true
+      res.json({ success,responseMsg});
     } catch (error) {
       res.json({ success, error });
     }
   }
 );
+
+
+
+router.get("/verify/:id/:token", async (req, res) => {
+  try {
+    const user = await User.findOne({ _id: req.params.id });
+    if (!user) return res.status(400).send("Invalid link");
+  
+    await User.updateOne({ _id: user._id, verified: true });
+
+    res.send("<h1>email verified sucessfully go to <a href='http://localhost:3000/login' target='_blank'>login page</a> <h1> ");
+  } catch (error) {
+    res.status(400).send({error});
+  }
+});
+
 
 router.post(
   "/signin",
@@ -85,6 +109,8 @@ router.post(
           .status(400)
           .json({ success: success, err: "Please Enter Valid Credentials" });
       }
+       
+   
 
       const data = {
         user: {
@@ -92,9 +118,10 @@ router.post(
         },
       };
 
+      const verified=user.verified;
       const authToken = jwt.sign(data, JWT_SECRET);
       success = true;
-      res.json({ success: success, authToken });
+      res.json({ success, authToken,verified });
     } catch (error) {
       res.json({ success, error });
     }
@@ -102,14 +129,14 @@ router.post(
 );
 
 router.post("/fetchuser", getUser, async (req, res) => {
-  let success=false
+  let success = false;
   try {
     const userId = req.user.id;
     const user = await User.findById(userId).select("-password");
-    success=true
-    res.status(200).send({success, user});
+    success = true;
+    res.status(200).send({ success, user });
   } catch (error) {
-    res.status(400).send({success,error});
+    res.status(400).send({ success, error });
   }
 });
 
