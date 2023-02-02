@@ -19,6 +19,7 @@ app.use(express.json());
 
 //available routes
 app.use("/api/auth", require("./routes/auth"));
+app.use("/api/property", require("./routes/property"));
 
 app.listen(PORT, () => {
   console.log(`listining at http://localhost:${PORT}`);

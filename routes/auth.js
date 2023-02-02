@@ -109,8 +109,6 @@ router.post(
           .status(400)
           .json({ success: success, err: "Please Enter Valid Credentials" });
       }
-       
-   
 
       const data = {
         user: {
