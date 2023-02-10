@@ -11,7 +11,7 @@ const getUser = (req, res, next) => {
     req.user = data.user;
     next();
   } catch (error) {
-    res.status(401).send({ error: "Please Authenticate using valid token " });
+    res.status(401).send();
   }
 };
 

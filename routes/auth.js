@@ -7,7 +7,8 @@ const router = express.Router();
 const getUser = require("../middleware/fetchUser");
 const JWT_SECRET = require("../config");
 const sendEmail = require("../utils/email");
-const Token = require("../models/token");
+const Account = require("../models/Account");
+
 
 //Create User Endpont login not required
 router.post(
@@ -43,6 +44,9 @@ router.post(
         email: req.body.email,
       });
 
+     await Account.create({
+        user:user._id
+      })
       const data = {
         user: {
           id: user.id,

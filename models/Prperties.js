@@ -6,6 +6,7 @@ const ProertySchema = new Schema({
     type: mongoose.Types.ObjectId,
     required: true,
   },
+  units: { type: Number },
   title: {
     type: String,
     required: true,
@@ -13,7 +14,10 @@ const ProertySchema = new Schema({
   description: {
     type: String,
     required: true,
-    unique: true,
+  },
+  id: {
+    type: Date,
+    default: Date.now,
   },
   address: {
     type: String,
@@ -27,14 +31,15 @@ const ProertySchema = new Schema({
     type: String,
     required: true,
   },
-  price:{
-    type:Number,
-    required:true
+  price: {
+    type: Number,
+    required: true,
   },
-  area:{
-    type:Number,
-    required:true
+  area: {
+    type: Number,
+    required: true,
   },
+  img: { type: String },
   date: {
     type: Date,
     default: Date.now,
@@ -45,7 +50,6 @@ const ProertySchema = new Schema({
   },
 });
 
-
-const Properties= mongoose.model("properties", ProertySchema);
+const Properties = mongoose.model("properties", ProertySchema);
 
 module.exports = Properties;
