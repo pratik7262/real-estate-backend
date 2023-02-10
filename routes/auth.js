@@ -7,7 +7,7 @@ const router = express.Router();
 const getUser = require("../middleware/fetchUser");
 const JWT_SECRET = require("../config");
 const sendEmail = require("../utils/email");
-const Account = require("../models/Account");
+// const Account = require("../models/Account");
 
 
 //Create User Endpont login not required

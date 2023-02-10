@@ -2,7 +2,7 @@ const Properties = require("../models/Prperties");
 const express = require("express");
 const router = express.Router();
 const getUser = require("../middleware/fetchUser");
-const Account = require("../models/Account");
+// const Account = require("../models/Account");
 const upload = require("../middleware/upload");
 
 
