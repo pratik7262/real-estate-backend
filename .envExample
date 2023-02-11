@@ -1,0 +1,5 @@
+JWT_SECRET='PS@RE#@!@#$$@@@##$$$'
+BASE_URL='http://localhost:5000/api/auth/'
+MONGO_URI=''
+EMAIL_iD=''
+APP_PASSWORD=''

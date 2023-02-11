@@ -5,9 +5,8 @@ const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 const router = express.Router();
 const getUser = require("../middleware/fetchUser");
-const JWT_SECRET = require("../config");
 const sendEmail = require("../utils/email");
-// const Account = require("../models/Account");
+require('dotenv').config();
 
 
 //Create User Endpont login not required
@@ -44,20 +43,17 @@ router.post(
         email: req.body.email,
       });
 
-     await Account.create({
-        user:user._id
-      })
       const data = {
         user: {
           id: user.id,
         },
       };
     
-      const authToken = jwt.sign(data, JWT_SECRET);
+      const authToken = jwt.sign(data, process.env.JWT_SECRET);
 
 
-      const msg=`http://localhost:5000/api/auth/verify/${user._id}/${authToken}`;
-      await sendEmail(req.body.email,"verify email",msg)
+      const msg=`${process.env.BASE_URL}verify/${user._id}/${authToken}`;
+      await sendEmail(req.body.email,"VERIFY EMAIL",msg)
 
       const responseMsg='Verifation link is sent to your email please verify your account';
       success=true
@@ -75,9 +71,9 @@ router.get("/verify/:id/:token", async (req, res) => {
     const user = await User.findOne({ _id: req.params.id });
     if (!user) return res.status(400).send("Invalid link");
   
-    await User.updateOne({ _id: user._id, verified: true });
+    await user.updateOne({verified: true });
 
-    res.send("<h1>email verified sucessfully go to <a href='http://localhost:3000/login' target='_blank'>login page</a> <h1> ");
+    res.send('<h1>YOUR EMAIL HAS BEEN VERIFIED SUCCESSFULLY GOT TO LOGIN PAGE FOR LOGIN</h1>');
   } catch (error) {
     res.status(400).send({error});
   }
@@ -121,7 +117,7 @@ router.post(
       };
 
       const verified=user.verified;
-      const authToken = jwt.sign(data, JWT_SECRET);
+      const authToken = jwt.sign(data, process.env.JWT_SECRET);
       success = true;
       res.json({ success, authToken,verified });
     } catch (error) {

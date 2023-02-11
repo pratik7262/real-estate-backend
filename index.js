@@ -1,8 +1,9 @@
 const connectToMongo = require("./db");
 const express = require("express");
 const cors = require("cors");
+require('dotenv').config();
 
-const PORT = 5000;
+const port=process.env.PORT||5000
 
 connectToMongo();
 
@@ -23,6 +24,6 @@ app.use("/api/property", require("./routes/property"));
 app.use("/api/invested", require("./routes/invested"));
 app.use("/api/listed", require("./routes/listed"));
 
-app.listen(PORT, () => {
-  console.log(`listining at http://localhost:${PORT}`);
+app.listen(port, () => {
+  console.log(`listining at http://localhost:${port}`);
 });

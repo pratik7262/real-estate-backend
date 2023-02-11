@@ -1,4 +1,5 @@
 const nodemailer = require("nodemailer");
+require('dotenv').config();
 
 const sendEmail = async (email, subject, text) => {
   try {
@@ -8,13 +9,13 @@ const sendEmail = async (email, subject, text) => {
       port: 465,
       secure: true,
       auth: {
-        user: 'pratikshinde7262@gmail.com',
-        pass: 'gsxlxwpenhpussor',
+        user: process.env.EMAIL_ID,
+        pass:process.env.APP_PASSWORD,
       },
     });
 
     await transporter.sendMail({
-      from: 'pratikshinde7262@gmail.com',
+      from: process.env.EMAIL_ID,
       to: email,
       subject: subject,
       text: text,
