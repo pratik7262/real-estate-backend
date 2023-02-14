@@ -1,9 +1,10 @@
 const Properties = require("../models/Prperties");
 const express = require("express");
 const router = express.Router();
+// const multer=require('multer')
+// const upload=multer({dest:'uploads/'})
+const upload=require('../middleware/upload')
 const getUser = require("../middleware/fetchUser");
-// const Account = require("../models/Account");
-const upload = require("../middleware/upload");
 
 
 //Route 1: Fetch User Specific Pending Properties
@@ -54,7 +55,7 @@ router.get("/pendingproperties", async (req, res) => {
 //Route 5: Route For Adding Property
 router.post("/addproperty", upload.single('img'), getUser, async (req, res) => {
   let success = false;
-  // try {
+  try {
   const userId = req.user.id;
   const newProperty = await Properties.create({
     user: userId,
@@ -66,15 +67,14 @@ router.post("/addproperty", upload.single('img'), getUser, async (req, res) => {
     price: req.body.price,
     units:(req.body.price/100),
     area: req.body.area,
+    img:req.file.path
   });
-  console.log(req.file)
-
   success = true;
   let responseMsg = "Property added successfully";
-  res.json({ success, newProperty, responseMsg });
-  // } catch (error) {
-  //   res.json({ error });
-  // }
+  res.json({ success,responseMsg  });
+  } catch (error) {
+    res.json({ error });
+  }
 });
 
 //Route 6: Route For Approve Pending Properties

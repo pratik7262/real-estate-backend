@@ -1,23 +1,15 @@
-const multer = require("multer");
-require('dotenv').config();
-const {GridFsStorage} = require('multer-gridfs-storage');
+var multer = require('multer');
+var path = require('path')
 
-const storage = new GridFsStorage({
-  url: "mongodb+srv://realEstate:MHf40SCQRQE4DoVC@cluster0.3tphinl.mongodb.net/realEstate?retryWrites=true&w=majority",
-  options: { useNewUrlParser: true, useUnifiedTopology: true },
-  file: (req, file) => {
-    const match = ["image/png", "image/jpeg"];
-
-    if (match.indexOf(file.mimetype) === -1) {
-      const filename = `${Date.now()}-any-name-${file.originalname}`;
-      return filename;
-    }
-
-    return {
-      bucketName: "photos",
-      filename: `${Date.now()}-any-name-${file.originalname}`,
-    };
+var storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/')
   },
-});
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname)) //Appending extension
+  }
+})
 
-module.exports = multer({ storage });
+const upload = multer({ storage: storage });
+
+module.exports=upload
