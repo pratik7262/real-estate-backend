@@ -48,6 +48,10 @@ const ProertySchema = new Schema({
     type: Boolean,
     default: false,
   },
+  notSold:{
+    type:Boolean,
+    default:true
+  }
 });
 
 const Properties = mongoose.model("properties", ProertySchema);

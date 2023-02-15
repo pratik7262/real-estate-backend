@@ -14,6 +14,7 @@ const InvestedSchema = new Schema({
   units:{
     type:Number
   },
+  
 });
 
 module.exports = mongoose.model("invested",InvestedSchema);

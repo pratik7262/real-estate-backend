@@ -126,7 +126,7 @@ router.post(
   }
 );
 
-router.post("/fetchuser", getUser, async (req, res) => {
+router.get("/fetchuser", getUser, async (req, res) => {
   let success = false;
   try {
     const userId = req.user.id;

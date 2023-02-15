@@ -8,43 +8,50 @@ const Properties = require("../models/Prperties");
 router.post("/invest", getUser, async (req, res) => {
   // try {
   const userId = req.user.id;
+  let resMSG = "Invested In Property Successfully";
   let investedProperty = await Invested.findOne({
     user: userId,
     id: req.body.id,
   });
   const property = await Properties.findOne({ _id: req.body.id });
-  let remainingUnits = property.units - req.body.units;
-  if (!investedProperty) {
-    investedProperty = await Invested.create({
-      user: userId,
-      id: req.body.id,
-      name: req.body.name,
-      units: req.body.units,
-    });
-
-    if (remainingUnits === 0) {
-      await property.delete();
-    } else {
-      await property.updateOne({ units: remainingUnits });
-    }
-    const resMSG = "Invested In Property Successfully";
-    res.json({ resMSG, investedProperty });
+  if (property.units < req.body.units) {
+    resMSG = `Sorry Only ${property.units} Units Are Available`;
+    res.send({ resMSG });
   } else {
-    const resMSG = "Invested In Property Successfully";
-    let totalUnits = investedProperty.units + parseInt(req.body.units);
-    // console.log(totalUnits,investedProperty.units, parseInt(req.body.units))
-    await investedProperty.updateOne({
-      units: totalUnits,
-    });
-    if (remainingUnits === 0) {
-      await property.delete();
-    } else {
-      let remainingUnits = property.units - req.body.units;
-      await property.updateOne({ units: remainingUnits });
-    }
+    let remainingUnits = property.units - req.body.units;
+    if (!investedProperty) {
+      if (remainingUnits === 0) {
+        await property.updateOne({ notSold: false });
+        await property.updateOne({ units: 0 });
+      } else {
+        await property.updateOne({ units: remainingUnits });
+      }
+      investedProperty = await Invested.create({
+        user: userId,
+        id: req.body.id,
+        name: req.body.name,
+        units: req.body.units,
+      });
 
-    res.json({ resMSG });
+      res.json({ resMSG, investedProperty });
+    } else {
+      let totalUnits = investedProperty.units + parseInt(req.body.units);
+      // console.log(totalUnits,investedProperty.units, parseInt(req.body.units))
+      if (remainingUnits === 0) {
+        await property.updateOne({ notSold: false });
+        await property.updateOne({ units: 0 });
+      } else {
+        await property.updateOne({ units: remainingUnits });
+      }
+      await investedProperty.updateOne({
+        units: totalUnits,
+      });
+      await investedProperty.updateOne({});
+
+      res.json({ resMSG });
+    }
   }
+
   // } catch (error) {
   //   res.json();
   // }
