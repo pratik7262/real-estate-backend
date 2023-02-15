@@ -35,7 +35,7 @@ router.get("/specificapprovedproperties", getUser, async (req, res) => {
 //Route 3: Fetch All The Approved Properties
 router.get("/approvedproperties", async (req, res) => {
   try {
-    const properties = await Properties.find({ approved: true });
+    const properties = await Properties.find({ approved: true,notSold:true });
     res.json({ properties });
   } catch (error) {
     res.json({ error });
@@ -100,6 +100,18 @@ router.get("/propertyinfo/:id", async (req, res) => {
   } catch (error) {
     res.status(400).json({ error });
   }
+});
+
+router.get("/issold/:id", async (req, res) => {
+  // try {
+    const propertyId = req.params.id;
+    const property = await Properties.findOne({ _id: propertyId });
+    console.log(property)
+    let sold = !property.notSold;
+    res.json({sold});
+  // } catch (error) {
+  //   res.status(400).json({ error });
+  // }
 });
 
 module.exports = router;
