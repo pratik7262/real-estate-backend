@@ -116,10 +116,11 @@ router.post(
         },
       };
 
+      const userId=user._id;
       const verified=user.verified;
       const authToken = jwt.sign(data, process.env.JWT_SECRET);
       success = true;
-      res.json({ success, authToken,verified });
+      res.json({ success, authToken,verified,userId });
     } catch (error) {
       res.json({ success, error });
     }

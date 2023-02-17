@@ -5,19 +5,22 @@ const ListedSchema = new Schema({
   user: {
     type: mongoose.Types.ObjectId,
   },
-  id:{
+  propertyId: {
     type: mongoose.Types.ObjectId,
   },
-  name:{
-    type:String
+  id: {
+    type: String,
   },
-  units:{
-    type:Number
+  name: {
+    type: String,
   },
-  key:{
-    type:Boolean,
-    default:true
-  }
+  units: {
+    type: Number,
+  },
+  key: {
+    type: Boolean,
+    default: true,
+  },
 });
 
 module.exports = mongoose.model("listed", ListedSchema);

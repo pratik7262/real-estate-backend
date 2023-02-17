@@ -5,16 +5,18 @@ const InvestedSchema = new Schema({
   user: {
     type: mongoose.Types.ObjectId,
   },
-  id:{
+  propertyId: {
     type: mongoose.Types.ObjectId,
   },
-  name:{
-    type:String
+  id: {
+    type: String,
   },
-  units:{
-    type:Number
+  name: {
+    type: String,
   },
-  
+  units: {
+    type: Number,
+  },
 });
 
-module.exports = mongoose.model("invested",InvestedSchema);
+module.exports = mongoose.model("invested", InvestedSchema);

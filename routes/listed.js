@@ -5,47 +5,53 @@ const Invested = require("../models/Invested");
 const Listed = require("../models/Listed");
 
 router.post("/listproperty", getUser, async (req, res) => {
+  let resMSG = "Property Listed In Marketplace Successfully";
   try {
-  const userId = req.user.id;
-  let listedProperty = await Listed.findOne({
-    user: userId,
-    id: req.body.id,
-  });
-
-  let investedProperty = await Invested.findOne({
-    user: userId,
-    id: req.body.id,
-  });
-
-  if (!listedProperty) {
-    listedProperty = await Listed.create({
+    const userId = req.user.id;
+    let listedProperty = await Listed.findOne({
       user: userId,
-      id: req.body.id,
-      name: req.body.name,
-      units: req.body.units,
+      propertyId: req.body.propertyId,
     });
-    let remainingUnits = investedProperty.units - req.body.units;
-    if (remainingUnits === 0) {
-      await investedProperty.delete();
-    } else {
-      await investedProperty.updateOne({ units: remainingUnits });
-    }
-    const resMSG = "Property Listed In Marketplace Successfully";
-    res.json({ resMSG });
-  } else {
-    let remainingUnits = investedProperty.units - req.body.units;
-    if (remainingUnits === 0) {
-      await investedProperty.delete();
-    } else {
-      await investedProperty.updateOne({ units: remainingUnits });
-    }
-    const resMSG = "Property Listed In Marketplace Successfully";
-    let totalUnits = listedProperty.units + parseInt(req.body.units);
-    await listedProperty.updateOne({
-      units: totalUnits,
+
+    let investedProperty = await Invested.findOne({
+      user: userId,
+      propertyId: req.body.propertyId,
     });
-    res.json({ resMSG });
-  }
+
+    if (investedProperty.units < req.body.units) {
+      resMSG = resMSG = `You Can Sell ${investedProperty.units} Units `;
+      res.send({ resMSG });
+    } else {
+      if (!listedProperty) {
+        listedProperty = await Listed.create({
+          user: userId,
+          propertyId: req.body.propertyId,
+          name: req.body.name,
+          units: req.body.units,
+          id:Date.now()+'-'+Math.random()
+        });
+        let remainingUnits = investedProperty.units - req.body.units;
+        if (remainingUnits === 0) {
+          await investedProperty.delete();
+        } else {
+          await investedProperty.updateOne({ units: remainingUnits });
+        }
+
+        res.json({ resMSG });
+      } else {
+        let remainingUnits = investedProperty.units - req.body.units;
+        if (remainingUnits === 0) {
+          await investedProperty.delete();
+        } else {
+          await investedProperty.updateOne({ units: remainingUnits });
+        }
+        let totalUnits = listedProperty.units + parseInt(req.body.units);
+        await listedProperty.updateOne({
+          units: totalUnits,
+        });
+        res.json({ resMSG });
+      }
+    }
   } catch (error) {
     res.json({ error });
   }
