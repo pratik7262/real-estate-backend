@@ -52,7 +52,7 @@ router.post(
       const authToken = jwt.sign(data, process.env.JWT_SECRET);
 
 
-      const msg=`${process.env.BASE_URL}verify/${user._id}/${authToken}`;
+      const msg=`${process.env.BASE_URL}api/auth/verify/${user._id}/${authToken}`;
       await sendEmail(req.body.email,"VERIFY EMAIL",msg)
 
       const responseMsg='Verifation link is sent to your email please verify your account';
