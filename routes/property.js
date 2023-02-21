@@ -3,9 +3,9 @@ const express = require("express");
 const router = express.Router();
 // const multer=require('multer')
 // const upload=multer({dest:'uploads/'})
-const upload=require('../middleware/upload')
+const User = require("../models/User");
+const upload = require("../middleware/upload");
 const getUser = require("../middleware/fetchUser");
-
 
 //Route 1: Fetch User Specific Pending Properties
 router.get("/specificpendingproperties", getUser, async (req, res) => {
@@ -35,7 +35,7 @@ router.get("/specificapprovedproperties", getUser, async (req, res) => {
 //Route 3: Fetch All The Approved Properties
 router.get("/approvedproperties", async (req, res) => {
   try {
-    const properties = await Properties.find({ approved: true,notSold:true });
+    const properties = await Properties.find({ approved: true, notSold: true });
     res.json({ properties });
   } catch (error) {
     res.json({ error });
@@ -53,25 +53,35 @@ router.get("/pendingproperties", async (req, res) => {
 });
 
 //Route 5: Route For Adding Property
-router.post("/addproperty", upload.single('img'), getUser, async (req, res) => {
+router.post("/addproperty", upload.single("img"), getUser, async (req, res) => {
   let success = false;
   try {
-  const userId = req.user.id;
-  const newProperty = await Properties.create({
-    user: userId,
-    title: req.body.title,
-    description: req.body.description,
-    address: req.body.address,
-    state: req.body.state,
-    city: req.body.city,
-    price: req.body.price,
-    units:(req.body.price/100),
-    area: req.body.area,
-    img:req.file.path
-  });
-  success = true;
-  let responseMsg = "Property added successfully";
-  res.json({ success,responseMsg  });
+    const userId = req.user.id;
+    const user = await User.findOne({ _id: userId });
+    const id =
+      req.body.country.slice(0, 2) +
+      req.body.state.slice(0, 2) +
+      req.body.city.slice(0, 2) +
+      req.body.zipCode;
+    const newProperty = await Properties.create({
+      user: userId,
+      userName: user.name,
+      zipCode: req.body.zipCode,
+      country: req.body.country,
+      id: id,
+      title: req.body.title,
+      description: req.body.description,
+      address: req.body.address,
+      state: req.body.state,
+      city: req.body.city,
+      price: req.body.price,
+      units: req.body.price / 100,
+      area: req.body.area,
+      img: req.file.path,
+    });
+    success = true;
+    let responseMsg = "Property added successfully";
+    res.json({ success, responseMsg });
   } catch (error) {
     res.json({ error });
   }
@@ -103,15 +113,26 @@ router.get("/propertyinfo/:id", async (req, res) => {
 });
 
 router.get("/issold/:id", async (req, res) => {
-  // try {
+  try {
     const propertyId = req.params.id;
     const property = await Properties.findOne({ _id: propertyId });
-    console.log(property)
     let sold = !property.notSold;
-    res.json({sold});
-  // } catch (error) {
-  //   res.status(400).json({ error });
-  // }
+    res.json({ sold });
+  } catch (error) {
+    res.status(400).json({ error });
+  }
+});
+
+router.get("/deleteProperty/:id", async (req, res) => {
+  let resMSG = "Some Error Occured";
+  try {
+    const propertyId = req.params.id;
+    const property = await Properties.deleteOne({ _id: propertyId });
+    resMSG = "Property Removed Successfully";
+    res.json({ resMSG });
+  } catch (error) {
+    res.status(400).json({ resMSG });
+  }
 });
 
 module.exports = router;

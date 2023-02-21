@@ -8,6 +8,16 @@ const InvestedSchema = new Schema({
   propertyId: {
     type: mongoose.Types.ObjectId,
   },
+  genaratedPropertyId: {
+    type: String,
+  },
+  userName: {
+    type: String,
+  },
+  price: {
+    type: Number,
+    default: 100,
+  },
   id: {
     type: String,
   },

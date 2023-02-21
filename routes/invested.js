@@ -4,6 +4,7 @@ const getUser = require("../middleware/fetchUser");
 const Invested = require("../models/Invested");
 const Listed = require("../models/Listed");
 const Properties = require("../models/Prperties");
+const User = require("../models/User");
 
 router.post("/invest", getUser, async (req, res) => {
   try {
@@ -12,10 +13,12 @@ router.post("/invest", getUser, async (req, res) => {
     let investedProperty = await Invested.findOne({
       user: userId,
       propertyId: req.body.propertyId,
+      price: 100,
     });
-   
+
     const property = await Properties.findOne({ _id: req.body.propertyId });
-  
+    const user = await User.findOne({ _id: userId });
+   
     if (property.units < req.body.units) {
       resMSG = `Sorry Only ${property.units} Units Are Available`;
       res.send({ resMSG });
@@ -31,9 +34,16 @@ router.post("/invest", getUser, async (req, res) => {
         investedProperty = await Invested.create({
           user: userId,
           propertyId: req.body.propertyId,
+          userName: user.name,
           name: req.body.name,
+          genaratedPropertyId: property.id,
           units: req.body.units,
-          id:Date.now()+'-'+Math.random()
+          id:
+            Date.now() +
+            "-" +
+            Math.random() +
+            "@" +
+            Math.floor(Math.random() * 900000),
         });
 
         res.json({ resMSG, investedProperty });
@@ -52,7 +62,7 @@ router.post("/invest", getUser, async (req, res) => {
 
         res.json({ resMSG });
       }
-   }
+    }
   } catch (error) {
     res.json();
   }
@@ -75,11 +85,16 @@ router.post("/investinlistedproperty", getUser, async (req, res) => {
     let investedProperty = await Invested.findOne({
       user: userId,
       propertyId: req.body.propertyId,
+      price: req.body.price,
     });
     const listedProperty = await Listed.findOne({
       propertyId: req.body.propertyId,
       user: req.body.sellerId,
+      price: req.body.price,
     });
+
+    const user = await User.findOne({ __id: userId });
+   
     if (listedProperty.units < req.body.units) {
       resMSG = `Sorry Only ${listedProperty.units} Units Are Available`;
       res.send({ resMSG });
@@ -88,13 +103,21 @@ router.post("/investinlistedproperty", getUser, async (req, res) => {
         investedProperty = await Invested.create({
           user: userId,
           propertyId: req.body.propertyId,
+          genaratedPropertyId: listedProperty.genaratedPropertyId,
           name: req.body.name,
+          userName: user.name,
+          price: req.body.price,
           units: req.body.units,
-          id:Date.now()+'-'+Math.random()
+          id:
+            Date.now() +
+            "-" +
+            Math.random() +
+            "@" +
+            Math.floor(Math.random() * 900000),
         });
         let remainingUnits = listedProperty.units - req.body.units;
         if (remainingUnits === 0) {
-          listedProperty.deleteOne();
+          await listedProperty.deleteOne();
           res.json({ resMSG });
         } else {
           await listedProperty.updateOne({ units: remainingUnits });
@@ -107,7 +130,7 @@ router.post("/investinlistedproperty", getUser, async (req, res) => {
         });
         let remainingUnits = listedProperty.units - req.body.units;
         if (remainingUnits === 0) {
-          listedProperty.deleteOne();
+          await listedProperty.deleteOne();
           res.json({ resMSG });
         } else {
           await listedProperty.updateOne({ units: remainingUnits });

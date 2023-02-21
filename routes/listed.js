@@ -3,6 +3,7 @@ const router = express.Router();
 const getUser = require("../middleware/fetchUser");
 const Invested = require("../models/Invested");
 const Listed = require("../models/Listed");
+const User = require("../models/User");
 
 router.post("/listproperty", getUser, async (req, res) => {
   let resMSG = "Property Listed In Marketplace Successfully";
@@ -11,12 +12,14 @@ router.post("/listproperty", getUser, async (req, res) => {
     let listedProperty = await Listed.findOne({
       user: userId,
       propertyId: req.body.propertyId,
+      price: req.body.price,
     });
 
     let investedProperty = await Invested.findOne({
-      user: userId,
-      propertyId: req.body.propertyId,
+      id: req.body.id,
     });
+
+    const user = await User.findOne({ _id: userId });
 
     if (investedProperty.units < req.body.units) {
       resMSG = resMSG = `You Can Sell ${investedProperty.units} Units `;
@@ -25,10 +28,19 @@ router.post("/listproperty", getUser, async (req, res) => {
       if (!listedProperty) {
         listedProperty = await Listed.create({
           user: userId,
+          userName: user.name,
           propertyId: req.body.propertyId,
           name: req.body.name,
           units: req.body.units,
-          id:Date.now()+'-'+Math.random()
+          genaratedPropertyId: investedProperty.genaratedPropertyId,
+          price: req.body.price,
+          oldPrice: investedProperty.price,
+          id:
+            Date.now() +
+            "-" +
+            Math.random() +
+            "@" +
+            Math.floor(Math.random() * 900000),
         });
         let remainingUnits = investedProperty.units - req.body.units;
         if (remainingUnits === 0) {
@@ -73,6 +85,67 @@ router.get("/alllistedproperty", async (req, res) => {
     res.json({ listedProperty });
   } catch (error) {
     res.json({ error });
+  }
+});
+
+router.get("/specificlistedproperty", getUser, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const listedProperty = await Listed.find({ user: userId });
+    res.json({ listedProperty });
+  } catch (error) {
+    res.json({ error });
+  }
+});
+
+router.get("/alllistedproperty", async (req, res) => {
+  try {
+  } catch (error) {
+    res.json({ error });
+  }
+});
+
+router.post("/deleteListedProperty", getUser, async (req, res) => {
+  let resMSG = "Some Error Occured";
+  try {
+    const userId = req.user.id;
+    let listedProperty = await Listed.findOne({ _id: req.body.id });
+
+    let investedProperty = await Invested.findOne({
+      user: userId,
+      propertyId: listedProperty.propertyId,
+      price: listedProperty.oldPrice,
+    });
+
+   
+
+    if (!investedProperty) {
+      investedProperty = await Invested.create({
+        user: userId,
+        propertyId: listedProperty.propertyId,
+        genaratedPropertyId: listedProperty.genaratedPropertyId,
+        name: listedProperty.name,
+        userName: listedProperty.userName,
+        price: listedProperty.oldPrice,
+        units: listedProperty.units,
+        id:
+          Date.now() +
+          "-" +
+          Math.random() +
+          "@" +
+          Math.floor(Math.random() * 900000),
+      });
+      await listedProperty.deleteOne();
+    } else {
+      let actualUnits = investedProperty.units + listedProperty.units;
+      await investedProperty.updateOne({ units: actualUnits });
+      await listedProperty.deleteOne();
+    }
+
+    resMSG = "Property Removed Successfully";
+    res.json({ resMSG });
+  } catch (error) {
+    res.status(400).json({ resMSG });
   }
 });
 

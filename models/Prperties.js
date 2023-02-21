@@ -6,6 +6,9 @@ const ProertySchema = new Schema({
     type: mongoose.Types.ObjectId,
     required: true,
   },
+  userName: {
+    type: String,
+  },
   units: { type: Number },
   title: {
     type: String,
@@ -15,11 +18,17 @@ const ProertySchema = new Schema({
     type: String,
     required: true,
   },
-  id: {
-    type: Date,
-    default: Date.now,
+  zipCode: {
+    type: Number,
+  },
+  id: {                   //genrated id
+    type: String,
   },
   address: {
+    type: String,
+    required: true,
+  },
+  country: {
     type: String,
     required: true,
   },
@@ -48,10 +57,10 @@ const ProertySchema = new Schema({
     type: Boolean,
     default: false,
   },
-  notSold:{
-    type:Boolean,
-    default:true
-  }
+  notSold: {
+    type: Boolean,
+    default: true,
+  },
 });
 
 const Properties = mongoose.model("properties", ProertySchema);

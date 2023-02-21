@@ -5,8 +5,21 @@ const ListedSchema = new Schema({
   user: {
     type: mongoose.Types.ObjectId,
   },
+
   propertyId: {
     type: mongoose.Types.ObjectId,
+  },
+  genaratedPropertyId: {
+    type: String,
+  },
+  userName: {
+    type: String,
+  },
+  price: {
+    type: Number,
+  },
+  oldPrice: {
+    type: Number,
   },
   id: {
     type: String,
