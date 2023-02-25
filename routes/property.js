@@ -60,23 +60,23 @@ router.post("/addproperty", upload.single("img"), getUser, async (req, res) => {
     const user = await User.findOne({ _id: userId });
     const id =
       req.body.country.slice(0, 2) +
-      req.body.state.slice(0, 2) +
       req.body.city.slice(0, 2) +
       req.body.zipCode;
     const newProperty = await Properties.create({
       user: userId,
       userName: user.name,
-      zipCode: req.body.zipCode,
-      country: req.body.country,
       id: id,
+      type:req.body.type,
+      subtype:req.body.subtype,
       title: req.body.title,
       description: req.body.description,
       address: req.body.address,
-      state: req.body.state,
-      city: req.body.city,
       price: req.body.price,
       units: req.body.price / 100,
       area: req.body.area,
+      country: req.body.country,
+      city: req.body.city,
+      zipCode: req.body.zipCode,
       img: req.file.path,
     });
     success = true;

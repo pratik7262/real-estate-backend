@@ -10,6 +10,12 @@ const ProertySchema = new Schema({
     type: String,
   },
   units: { type: Number },
+  type: {
+    type: String,
+  },
+  subtype: {
+    type: String,
+  },
   title: {
     type: String,
     required: true,
@@ -21,7 +27,8 @@ const ProertySchema = new Schema({
   zipCode: {
     type: Number,
   },
-  id: {                   //genrated id
+  id: {
+    //genrated id
     type: String,
   },
   address: {
@@ -29,10 +36,6 @@ const ProertySchema = new Schema({
     required: true,
   },
   country: {
-    type: String,
-    required: true,
-  },
-  state: {
     type: String,
     required: true,
   },
