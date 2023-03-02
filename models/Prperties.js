@@ -51,6 +51,10 @@ const ProertySchema = new Schema({
     type: Number,
     required: true,
   },
+  rentalIncome: {
+    type: Number,
+    required: true,
+  },
   img: { type: String },
   date: {
     type: Date,

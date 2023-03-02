@@ -53,7 +53,7 @@ router.post(
 
 
       const msg=`${process.env.BASE_URL}api/auth/verify/${user._id}/${authToken}`;
-      // await sendEmail(req.body.email,"VERIFY EMAIL",msg)
+      await sendEmail(req.body.email,"VERIFY EMAIL",msg)
 
       const responseMsg='Verifation link is sent to your email please verify your account';
       success=true

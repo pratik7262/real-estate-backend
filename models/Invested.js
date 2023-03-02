@@ -8,6 +8,10 @@ const InvestedSchema = new Schema({
   propertyId: {
     type: mongoose.Types.ObjectId,
   },
+  date: {
+    type: Date,
+    default: Date.now,
+  },
   genaratedPropertyId: {
     type: String,
   },
