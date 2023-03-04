@@ -4,6 +4,7 @@ const getUser = require("../middleware/fetchUser");
 const Invested = require("../models/Invested");
 const Listed = require("../models/Listed");
 const Properties = require("../models/Prperties");
+const Rental = require("../models/Rental");
 const User = require("../models/User");
 
 router.post("/invest", getUser, async (req, res) => {
@@ -16,21 +17,21 @@ router.post("/invest", getUser, async (req, res) => {
       price: 100,
     });
 
+    let rental = await Rental.findOne({
+      user: userId,
+      propertyId: req.body.propertyId,
+    });
     const property = await Properties.findOne({ _id: req.body.propertyId });
     const user = await User.findOne({ _id: userId });
-   
+
     if (property.units < req.body.units) {
       resMSG = `Sorry Only ${property.units} Units Are Available`;
       res.send({ resMSG });
     } else {
       let remainingUnits = property.units - req.body.units;
       if (!investedProperty) {
-        if (remainingUnits === 0) {
-          await property.updateOne({ notSold: false });
-          await property.updateOne({ units: 0 });
-        } else {
-          await property.updateOne({ units: remainingUnits });
-        }
+        let totalUnits = property.price / 100;
+
         investedProperty = await Invested.create({
           user: userId,
           propertyId: req.body.propertyId,
@@ -46,19 +47,51 @@ router.post("/invest", getUser, async (req, res) => {
             Math.floor(Math.random() * 900000),
         });
 
+        rental = await Rental.create({
+          user: userId,
+          propertyId: req.body.propertyId,
+          units: req.body.units,
+          rentalIncomePerSecPerUnit:
+            property.rentalIncome / (30 * 86400 * totalUnits),
+          investedDocumentId: investedProperty._id,
+        });
+
+        if (remainingUnits === 0) {
+          await property.updateOne({ notSold: false });
+          await property.updateOne({ units: 0 });
+          let rentals = await Rental.find({
+            propertyId: req.body.propertyId,
+          });
+          rentals.forEach(async (element) => {
+            await element.updateOne({ investedDate: Date.now() });
+          });
+          await rental.updateOne({ investedDate: Date.now() });
+        } else {
+          await property.updateOne({ units: remainingUnits });
+        }
+
         res.json({ resMSG, investedProperty });
       } else {
         let totalUnits = investedProperty.units + parseInt(req.body.units);
         if (remainingUnits === 0) {
           await property.updateOne({ notSold: false });
           await property.updateOne({ units: 0 });
+          let rentals = await Rental.find({
+            propertyId: req.body.propertyId,
+          });
+          rentals.forEach(async (element) => {
+            await element.updateOne({ investedDate: Date.now() });
+          });
+          await rental.updateOne({ investedDate: Date.now() });
         } else {
           await property.updateOne({ units: remainingUnits });
         }
         await investedProperty.updateOne({
           units: totalUnits,
         });
-        await investedProperty.updateOne({});
+        await rental.updateOne({
+          units: totalUnits,
+        });
 
         res.json({ resMSG });
       }
@@ -93,8 +126,23 @@ router.post("/investinlistedproperty", getUser, async (req, res) => {
       price: req.body.price,
     });
 
+    let sellerRental = await Rental.findOne({
+      user: req.body.sellerId,
+      propertyId: req.body.propertyId,
+    });
+
+    let sellersInvestedDocument = await Invested.findOne({
+      _id: sellerRental.investedDocumentId,
+    });
+
+    let investedDate = sellerRental.investedDate;
+    let soldDate = Date.now();
+    let time = Math.abs(soldDate - investedDate);
+    let holdingSec = Math.ceil(time / 1000);
+    console.log(holdingSec);
+
     const user = await User.findOne({ __id: userId });
-   
+
     if (listedProperty.units < req.body.units) {
       resMSG = `Sorry Only ${listedProperty.units} Units Are Available`;
       res.send({ resMSG });
@@ -115,12 +163,45 @@ router.post("/investinlistedproperty", getUser, async (req, res) => {
             "@" +
             Math.floor(Math.random() * 900000),
         });
+        const buyersRental = await Rental.create({
+          user: userId,
+          propertyId: req.body.propertyId,
+          investedDate: Date.now(),
+          units: req.body.units,
+          rentalIncomePerSecPerUnit: sellerRental.rentalIncomePerSecPerUnit,
+          investedDocumentId: investedProperty._id,
+        });
         let remainingUnits = listedProperty.units - req.body.units;
         if (remainingUnits === 0) {
           await listedProperty.deleteOne();
+          let rentalIncome =
+            sellerRental.rentalIncomePerSecPerUnit *
+            holdingSec *
+            sellerRental.units;
+          await sellerRental.updateOne({ soldDate: Date.now() });
+          await sellerRental.updateOne({
+            units: sellersInvestedDocument.units + remainingUnits,
+          });
+          sellersInvestedDocument.units + remainingUnits;
+          await sellerRental.updateOne({
+            rentalIncome: sellerRental.rentalIncome + rentalIncome,
+          });
           res.json({ resMSG });
         } else {
           await listedProperty.updateOne({ units: remainingUnits });
+          sellersInvestedDocument.units + remainingUnits;
+          let rentalIncome =
+            sellerRental.rentalIncomePerSecPerUnit *
+            holdingSec *
+            sellerRental.units;
+          await sellerRental.updateOne({ soldDate: Date.now() });
+          await sellerRental.updateOne({
+            units: sellersInvestedDocument.units + remainingUnits,
+          });
+          sellersInvestedDocument.units + remainingUnits;
+          await sellerRental.updateOne({
+            rentalIncome: sellerRental.rentalIncome + rentalIncome,
+          });
           res.json({ resMSG });
         }
       } else {
@@ -128,12 +209,44 @@ router.post("/investinlistedproperty", getUser, async (req, res) => {
         await investedProperty.updateOne({
           units: totalUnits,
         });
+        const buyersRental = await Rental.create({
+          user: userId,
+          propertyId: req.body.propertyId,
+          investedDate: Date.now(),
+          units: req.body.units,
+          rentalIncomePerSecPerUnit: sellerRental.rentalIncomePerSecPerUnit,
+          investedDocumentId: investedProperty._id,
+        });
         let remainingUnits = listedProperty.units - req.body.units;
         if (remainingUnits === 0) {
           await listedProperty.deleteOne();
+          let rentalIncome =
+            sellerRental.rentalIncomePerSecPerUnit *
+            holdingSec *
+            sellerRental.units;
+          await sellerRental.updateOne({ soldDate: Date.now() });
+          await sellerRental.updateOne({
+            units: sellersInvestedDocument.units + remainingUnits,
+          });
+          sellersInvestedDocument.units + remainingUnits;
+          await sellerRental.updateOne({
+            rentalIncome: sellerRental.rentalIncome + rentalIncome,
+          });
           res.json({ resMSG });
         } else {
           await listedProperty.updateOne({ units: remainingUnits });
+          let rentalIncome =
+            sellerRental.rentalIncomePerSecPerUnit *
+            holdingSec *
+            sellerRental.units;
+          await sellerRental.updateOne({ soldDate: Date.now() });
+          await sellerRental.updateOne({
+            units: sellersInvestedDocument.units + remainingUnits,
+          });
+          console.log(sellersInvestedDocument.units + remainingUnits);
+          await sellerRental.updateOne({
+            rentalIncome: sellerRental.rentalIncome + rentalIncome,
+          });
           res.json({ resMSG });
         }
       }

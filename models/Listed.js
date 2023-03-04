@@ -5,7 +5,6 @@ const ListedSchema = new Schema({
   user: {
     type: mongoose.Types.ObjectId,
   },
-
   propertyId: {
     type: mongoose.Types.ObjectId,
   },
@@ -20,6 +19,10 @@ const ListedSchema = new Schema({
   },
   oldPrice: {
     type: Number,
+  },
+  date: {
+    type: Date,
+    default: Date.now(),
   },
   id: {
     type: String,
