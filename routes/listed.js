@@ -49,7 +49,7 @@ router.post("/listproperty", getUser, async (req, res) => {
       });
       let remainingUnits = investedProperty.units - req.body.units;
       if (remainingUnits === 0) {
-        await investedProperty.delete();
+        await investedProperty.updateOne({units:0});
         
       } else {
         await investedProperty.updateOne({ units: remainingUnits });
@@ -60,7 +60,7 @@ router.post("/listproperty", getUser, async (req, res) => {
     } else {
       let remainingUnits = investedProperty.units - req.body.units;
       if (remainingUnits === 0) {
-        await investedProperty.delete();
+        await investedProperty.updateOne({units:0});
       } else {
         await investedProperty.updateOne({ units: remainingUnits });
       }
