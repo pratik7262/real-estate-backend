@@ -1,8 +1,7 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
-let id =
-  Date.now() + "-" + Math.random() + "@" + Math.floor(Math.random() * 900000);
+
 
 const RentalSchema = new Schema({
   user: {
@@ -22,12 +21,12 @@ const RentalSchema = new Schema({
   investedDate: {
     type: Date,
   },
-  id: { type: String, default: id },
+  id: { type: String},
   soldDate: {
     type: Date,
   },
-  unpaid:{
-    type:Boolean
+  unpaid: {
+    type: Boolean,
   },
   rentalIncomePerSecPerUnit: {
     type: Number,

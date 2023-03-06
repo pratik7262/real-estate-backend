@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const getUser = require("../middleware/fetchUser");
+const Holding = require("../models/Holding");
 const Invested = require("../models/Invested");
 const Listed = require("../models/Listed");
 const Rental = require("../models/Rental");
@@ -8,7 +9,7 @@ const User = require("../models/User");
 
 router.post("/listproperty", getUser, async (req, res) => {
   let resMSG = "Property Listed In Marketplace Successfully";
-  // try {
+  try {
   const userId = req.user.id;
   let listedProperty = await Listed.findOne({
     user: userId,
@@ -19,10 +20,12 @@ router.post("/listproperty", getUser, async (req, res) => {
   let investedProperty = await Invested.findOne({
     id: req.body.id,
   });
+  console.log(req.body.id);
 
- 
-
-
+  let holding = await Holding.findOne({
+    user: userId,
+    propertyId: req.body.propertyId,
+  });
 
   const user = await User.findOne({ _id: userId });
 
@@ -49,20 +52,72 @@ router.post("/listproperty", getUser, async (req, res) => {
       });
       let remainingUnits = investedProperty.units - req.body.units;
       if (remainingUnits === 0) {
-        await investedProperty.updateOne({units:0});
-        
+        holding.investments.forEach(async (ele) => {
+          if (ele.price === investedProperty.price) {
+            let newInvestment = holding.investments;
+            let index = holding.investments.indexOf(ele);
+            if (index !== -1) {
+              newInvestment.splice(index, 1);
+              await holding.updateOne({ investments: newInvestment });
+            }
+          }
+        });
+        await investedProperty.updateOne({ units: 0, isZero: true });
       } else {
         await investedProperty.updateOne({ units: remainingUnits });
-      
+        holding.investments.forEach(async (ele) => {
+          if (ele.price === investedProperty.price) {
+            let newInvestment = holding.investments;
+            let newElement = {
+              date: ele.date,
+              units: remainingUnits,
+              price: ele.price,
+              id: investedProperty.id,
+            };
+            let index = holding.investments.indexOf(ele);
+            if (index !== -1) {
+              newInvestment.splice(index, 1);
+              newInvestment.push(newElement);
+              await holding.updateOne({ investments: newInvestment });
+            }
+          }
+        });
       }
 
       res.json({ resMSG });
     } else {
       let remainingUnits = investedProperty.units - req.body.units;
       if (remainingUnits === 0) {
-        await investedProperty.updateOne({units:0});
+        holding.investments.forEach(async (ele) => {
+          if (ele.price === investedProperty.price) {
+            let newInvestment = holding.investments;
+            let index = holding.investments.indexOf(ele);
+            if (index !== -1) {
+              newInvestment.splice(index, 1);
+              await holding.updateOne({ investments: newInvestment });
+            }
+          }
+        });
+        await investedProperty.updateOne({ units: 0, isZero: true });
       } else {
         await investedProperty.updateOne({ units: remainingUnits });
+        holding.investments.forEach(async (ele) => {
+          if (ele.price === investedProperty.price) {
+            let newInvestment = holding.investments;
+            let newElement = {
+              date: ele.date,
+              units: remainingUnits,
+              price: ele.price,
+              id: investedProperty.id,
+            };
+            let index = holding.investments.indexOf(ele);
+            if (index !== -1) {
+              newInvestment.splice(index, 1);
+              newInvestment.push(newElement);
+              await holding.updateOne({ investments: newInvestment });
+            }
+          }
+        });
       }
       let totalUnits = listedProperty.units + parseInt(req.body.units);
       await listedProperty.updateOne({
@@ -71,9 +126,9 @@ router.post("/listproperty", getUser, async (req, res) => {
       res.json({ resMSG });
     }
   }
-  // } catch (error) {
-  //   res.json({ error });
-  // }
+  } catch (error) {
+    res.json({ error });
+  }
 });
 
 router.get("/specificlistedproperty", getUser, async (req, res) => {

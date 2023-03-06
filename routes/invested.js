@@ -6,109 +6,154 @@ const Listed = require("../models/Listed");
 const Properties = require("../models/Prperties");
 const Rental = require("../models/Rental");
 const User = require("../models/User");
+const Holding = require("../models/Holding");
 
 router.post("/invest", getUser, async (req, res) => {
-  // try {
-  const userId = req.user.id;
-  let resMSG = "Invested In Property Successfully";
-  let investedProperty = await Invested.findOne({
-    user: userId,
-    propertyId: req.body.propertyId,
-    price: 100,
-  });
+  try {
+    const userId = req.user.id;
+    const id =
+      Date.now() +
+      "-" +
+      Math.random() +
+      "@" +
+      Math.floor(Math.random() * 900000);
+    let resMSG = "Invested In Property Successfully";
+    let investedProperty = await Invested.findOne({
+      user: userId,
+      propertyId: req.body.propertyId,
+      price: 100,
+    });
 
-  let rental = await Rental.findOne({
-    user: userId,
-    propertyId: req.body.propertyId,
-  });
-  const property = await Properties.findOne({ _id: req.body.propertyId });
-  const user = await User.findOne({ _id: userId });
+    let rental = await Rental.findOne({
+      user: userId,
+      propertyId: req.body.propertyId,
+    });
 
-  if (property.units < req.body.units) {
-    resMSG = `Sorry Only ${property.units} Units Are Available`;
-    res.send({ resMSG });
-  } else {
-    let remainingUnits = property.units - req.body.units;
-    if (!investedProperty) {
-      let totalUnits = property.price / 100;
+    let holding = await Holding.findOne({
+      user: userId,
+      propertyId: req.body.propertyId,
+    });
 
-      investedProperty = await Invested.create({
-        user: userId,
-        propertyId: req.body.propertyId,
-        userName: user.name,
-        name: req.body.name,
-        genaratedPropertyId: property.id,
-        units: req.body.units,
-        id:
-          Date.now() +
-          "-" +
-          Math.random() +
-          "@" +
-          Math.floor(Math.random() * 900000),
-      });
+    const property = await Properties.findOne({ _id: req.body.propertyId });
+    const user = await User.findOne({ _id: userId });
 
-      rental = await Rental.create({
-        user: userId,
-        userName: user.name,
-        propertyId: req.body.propertyId,
-        units: req.body.units,
-        title: req.body.name,
-        genaratedId: property.id,
-        rentalIncomePerSecPerUnit:
-          property.rentalIncome / (30 * 86400 * totalUnits),
-        investedDocumentId: investedProperty._id,
-        unpaid: true,
-      });
-
-      if (remainingUnits === 0) {
-        await property.updateOne({ notSold: false });
-        await property.updateOne({ units: 0 });
-        let rentals = await Rental.find({
-          propertyId: req.body.propertyId,
-        });
-        rentals.forEach(async (element) => {
-          await element.updateOne({ investedDate: Date.now() });
-        });
-        await rental.updateOne({ investedDate: Date.now() });
-      } else {
-        await property.updateOne({ units: remainingUnits });
-      }
-
-      res.json({ resMSG, investedProperty });
+    if (property.units < req.body.units) {
+      resMSG = `Sorry Only ${property.units} Units Are Available`;
+      res.send({ resMSG });
     } else {
-      let totalUnits = investedProperty.units + parseInt(req.body.units);
-      if (remainingUnits === 0) {
-        await property.updateOne({ notSold: false });
-        await property.updateOne({ units: 0 });
-        let rentals = await Rental.find({
+      let remainingUnits = property.units - req.body.units;
+      if (!investedProperty) {
+        let totalUnits = property.price / 100;
+        investedProperty = await Invested.create({
+          user: userId,
           propertyId: req.body.propertyId,
+          userName: user.name,
+          name: req.body.name,
+          genaratedPropertyId: property.id,
+          units: req.body.units,
+          id: id,
         });
-        rentals.forEach(async (element) => {
-          await element.updateOne({ investedDate: Date.now() });
-        });
-        await rental.updateOne({ investedDate: Date.now() });
-      } else {
-        await property.updateOne({ units: remainingUnits });
-      }
-      await investedProperty.updateOne({
-        units: totalUnits,
-      });
-      await rental.updateOne({
-        units: totalUnits,
-      });
 
-      res.json({ resMSG });
+        rental = await Rental.create({
+          user: userId,
+          userName: user.name,
+          propertyId: req.body.propertyId,
+          units: req.body.units,
+          id: id,
+          title: req.body.name,
+          genaratedId: property.id,
+          rentalIncomePerSecPerUnit:
+            property.rentalIncome / (30 * 86400 * totalUnits),
+          investedDocumentId: investedProperty._id,
+          unpaid: true,
+        });
+
+        holding = await Holding.create({
+          user: userId,
+          propertyId: req.body.propertyId,
+          userName: user.name,
+          name: req.body.name,
+          genaratedPropertyId: property.id,
+          type: property.type,
+          subtype: property.subtype,
+          area: property.area,
+          city: property.city,
+          country: property.country,
+          investments: [
+            { units: req.body.units, price: 100, id: investedProperty.id },
+          ],
+        });
+
+        if (remainingUnits === 0) {
+          await property.updateOne({ notSold: false });
+          await property.updateOne({ units: 0 });
+          let rentals = await Rental.find({
+            propertyId: req.body.propertyId,
+          });
+          rentals.forEach(async (element) => {
+            await element.updateOne({ investedDate: Date.now() });
+          });
+          await rental.updateOne({ investedDate: Date.now() });
+        } else {
+          await property.updateOne({ units: remainingUnits });
+        }
+
+        res.json({ resMSG, investedProperty });
+      } else {
+        let totalUnits = investedProperty.units + parseInt(req.body.units);
+        if (remainingUnits === 0) {
+          await property.updateOne({ notSold: false });
+          await property.updateOne({ units: 0 });
+          let rentals = await Rental.find({
+            propertyId: req.body.propertyId,
+          });
+          rentals.forEach(async (element) => {
+            await element.updateOne({ investedDate: Date.now() });
+          });
+          await rental.updateOne({ investedDate: Date.now() });
+        } else {
+          await property.updateOne({ units: remainingUnits });
+        }
+        await investedProperty.updateOne({
+          units: totalUnits,
+        });
+        await rental.updateOne({
+          units: totalUnits,
+        });
+
+        holding.investments.forEach(async (ele) => {
+          if (ele.price === 100) {
+            let newElement = {
+              date: ele.date,
+              units: totalUnits,
+              price: 100,
+              id: ele.id,
+            };
+            let newInvestment = holding.investments;
+            let index = holding.investments.indexOf(ele);
+            if (index !== -1) {
+              newInvestment.splice(index, 1);
+              newInvestment.push(newElement);
+              await holding.updateOne({ investments: newInvestment });
+            }
+          }
+        });
+
+        res.json({ resMSG });
+      }
     }
+  } catch (error) {
+    res.json();
   }
-  // } catch (error) {
-  //   res.json();
-  // }
 });
 
 router.get("/specificinvestedproperty", getUser, async (req, res) => {
   try {
     const userId = req.user.id;
-    const investedProperty = await Invested.find({ user: userId });
+    const investedProperty = await Invested.find({
+      user: userId,
+      isZero: false,
+    });
     res.json({ investedProperty });
   } catch (error) {
     res.json({ error });
@@ -119,11 +164,21 @@ router.post("/investinlistedproperty", getUser, async (req, res) => {
   let resMSG = "Invested In Property Successfully";
   // try {
   const userId = req.user.id;
+  const id =
+    Date.now() + "-" + Math.random() + "@" + Math.floor(Math.random() * 900000);
   let investedProperty = await Invested.findOne({
     user: userId,
     propertyId: req.body.propertyId,
     price: req.body.price,
   });
+
+  console.log(investedProperty);
+
+  let holding = await Holding.findOne({
+    user: userId,
+    propertyId: req.body.propertyId,
+  });
+
   const listedProperty = await Listed.findOne({
     propertyId: req.body.propertyId,
     user: req.body.sellerId,
@@ -143,9 +198,10 @@ router.post("/investinlistedproperty", getUser, async (req, res) => {
   let soldDate = Date.now();
   let time = Math.abs(soldDate - investedDate);
   let holdingSec = Math.ceil(time / 1000);
-  console.log(holdingSec);
 
   const user = await User.findOne({ __id: userId });
+
+  const property = await Properties.findById(req.body.propertyId);
 
   if (listedProperty.units < req.body.units) {
     resMSG = `Sorry Only ${listedProperty.units} Units Are Available`;
@@ -167,18 +223,53 @@ router.post("/investinlistedproperty", getUser, async (req, res) => {
           "@" +
           Math.floor(Math.random() * 900000),
       });
+
+      if (!holding) {
+        holding = await Holding.create({
+          user: userId,
+          propertyId: req.body.propertyId,
+          userName: user.name,
+          name: req.body.name,
+          genaratedPropertyId: property.id,
+          type: property.type,
+          subtype: property.subtype,
+          area: property.area,
+          city: property.city,
+          country: property.country,
+          investments: [
+            {
+              units: req.body.units,
+              price: req.body.price,
+              id: investedProperty.id,
+            },
+          ],
+        });
+      } else {
+        let newInvestment = holding.investments;
+        let newElement = {
+          date: Date.now(),
+          price: req.body.price,
+          units: req.body.units,
+          id: investedProperty.id,
+        };
+        newInvestment.push(newElement);
+        await holding.updateOne({ investments: newInvestment });
+      }
+
       const buyersRental = await Rental.create({
         user: userId,
         propertyId: req.body.propertyId,
         investedDate: Date.now(),
         userName: user.name,
         unpaid: true,
+        id: id,
         title: investedProperty.name,
         genaratedId: investedProperty.genaratedPropertyId,
         units: req.body.units,
         rentalIncomePerSecPerUnit: sellerRental.rentalIncomePerSecPerUnit,
         investedDocumentId: investedProperty._id,
       });
+
       let remainingUnits = listedProperty.units - req.body.units;
       if (remainingUnits === 0) {
         await listedProperty.deleteOne();
@@ -216,7 +307,7 @@ router.post("/investinlistedproperty", getUser, async (req, res) => {
       const buyersRental = await Rental.create({
         user: userId,
         propertyId: req.body.propertyId,
-
+        id: id,
         investedDate: Date.now(),
         userName: user.name,
         unpaid: true,
@@ -226,6 +317,25 @@ router.post("/investinlistedproperty", getUser, async (req, res) => {
         rentalIncomePerSecPerUnit: sellerRental.rentalIncomePerSecPerUnit,
         investedDocumentId: investedProperty._id,
       });
+
+      holding.investments.forEach(async (ele) => {
+        if (ele.price === investedProperty.price) {
+          let newInvestment = holding.investments;
+          let newElement = {
+            date: ele.date,
+            units: totalUnits,
+            price: ele.price,
+            id: ele.id,
+          };
+          let index = holding.investments.indexOf(ele);
+          if (index !== -1) {
+            newInvestment.splice(index, 1);
+            newInvestment.push(newElement);
+            await holding.updateOne({ investments: newInvestment });
+          }
+        }
+      });
+
       let remainingUnits = listedProperty.units - req.body.units;
       if (remainingUnits === 0) {
         await listedProperty.deleteOne();
@@ -248,7 +358,6 @@ router.post("/investinlistedproperty", getUser, async (req, res) => {
         await sellerRental.updateOne({
           units: sellersInvestedDocument.units + remainingUnits,
         });
-        console.log(sellersInvestedDocument.units + remainingUnits);
         await sellerRental.updateOne({
           rentalIncome: sellerRental.rentalIncome + rentalIncome,
         });

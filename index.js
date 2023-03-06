@@ -4,8 +4,6 @@ const cors = require("cors");
 const bodyParser=require('body-parser')
 require('dotenv').config();
 
-
-
 const port=process.env.PORT||5000
 
 connectToMongo();
@@ -28,6 +26,7 @@ app.use("/api/property", require("./routes/property"));
 app.use("/api/invested", require("./routes/invested"));
 app.use("/api/listed", require("./routes/listed"));
 app.use("/api/rental", require("./routes/rental"));
+app.use("/api/holding", require("./routes/holding"));
 
 app.listen(port, () => {
   console.log(`listining at http://localhost:${port}`);

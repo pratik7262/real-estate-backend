@@ -22,5 +22,21 @@ router.get("/allrental", async (req, res) => {
     }
   });
 
+  router.get('/pay/:id',async(req , res )=>{
+    let resMsg='Rent Paid Succesfully'
+    //  try {
+      let rental=await Rental.findById(req.params.id)
+      await rental.updateOne({ rentalIncome:0})
+      await rental.updateOne({investedDate:Date.now()});
+      if(rental.units===0){
+        await rental.deleteOne();
+      }
+      res.json({resMsg})
+    //  } catch (err) {
+    //   resMsg='Some Error Occured'
+    //   res.json({resMsg})
+    //  }
+  })
+
 
 module.exports = router;

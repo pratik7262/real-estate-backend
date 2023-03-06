@@ -31,9 +31,10 @@ const InvestedSchema = new Schema({
   units: {
     type: Number,
   },
-  rentalId: {
-    type: mongoose.Types.ObjectId,
-  },
+  isZero:{
+    type:Boolean,
+    default:false
+  }
 });
 
 module.exports = mongoose.model("invested", InvestedSchema);
