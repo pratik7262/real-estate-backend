@@ -22,12 +22,16 @@ router.get("/allrental", async (req, res) => {
     }
   });
 
-  router.get('/pay/:id',async(req , res )=>{
+  router.post('/pay',async(req , res )=>{
     let resMsg='Rent Paid Succesfully'
     //  try {
-      let rental=await Rental.findById(req.params.id)
+      let rental=await Rental.findById(req.body.id)
+     
       await rental.updateOne({ rentalIncome:0})
       await rental.updateOne({investedDate:Date.now()});
+      let newRentalIncome=req.body.currentRentalIncome+rental.paidRentalIncome
+      console.log(newRentalIncome,rental.paidRentalIncome,req.body.currentRentalIncome)
+      await rental.updateOne({paidRentalIncome:newRentalIncome})
       if(rental.units===0){
         await rental.deleteOne();
       }

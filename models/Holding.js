@@ -32,6 +32,10 @@ const HoldingSchema = new Schema({
   country: {
     type: String,
   },
+  isSold: {
+    type: Boolean,
+    default: false,
+  },
   investments: [
     {
       date: {

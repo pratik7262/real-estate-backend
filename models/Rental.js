@@ -1,8 +1,6 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
-
-
 const RentalSchema = new Schema({
   user: {
     type: mongoose.Types.ObjectId,
@@ -21,7 +19,7 @@ const RentalSchema = new Schema({
   investedDate: {
     type: Date,
   },
-  id: { type: String},
+  id: { type: String },
   soldDate: {
     type: Date,
   },
@@ -31,6 +29,7 @@ const RentalSchema = new Schema({
   rentalIncomePerSecPerUnit: {
     type: Number,
   },
+  paidRentalIncome: { type: Number, default: 0 },
   rentalIncome: {
     type: Number,
     default: 0,
