@@ -27,6 +27,7 @@ app.use("/api/invested", require("./routes/invested"));
 app.use("/api/listed", require("./routes/listed"));
 app.use("/api/rental", require("./routes/rental"));
 app.use("/api/holding", require("./routes/holding"));
+app.use("/api/history", require("./routes/history"));
 
 app.listen(port, () => {
   console.log(`listining at http://localhost:${port}`);

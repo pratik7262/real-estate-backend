@@ -7,6 +7,7 @@ const Properties = require("../models/Prperties");
 const Rental = require("../models/Rental");
 const User = require("../models/User");
 const Holding = require("../models/Holding");
+const History = require("../models/History");
 
 router.post("/invest", getUser, async (req, res) => {
   // try {
@@ -48,6 +49,17 @@ router.post("/invest", getUser, async (req, res) => {
         genaratedPropertyId: property.id,
         units: req.body.units,
         id: id,
+      });
+
+      await History.create({
+        user: userId,
+        userName: user.name,
+        propertyId: req.body.propertyId,
+        genaratedPropertyId: property.id,
+        invested: property.id,
+        price: 100,
+        units: req.body.units,
+        id:userId+Date.now()+Math.floor(Math.random() * 9000000000)+'id'
       });
 
       rental = await Rental.create({
@@ -109,7 +121,6 @@ router.post("/invest", getUser, async (req, res) => {
           await element.updateOne({ isSold: true });
         });
         await holding.updateOne({ isSold: true });
-        await holding.updateOne({ isSold: true });
         await property.updateOne({ units: 0 });
         let rentals = await Rental.find({
           propertyId: req.body.propertyId,
@@ -126,6 +137,17 @@ router.post("/invest", getUser, async (req, res) => {
       });
       await rental.updateOne({
         units: totalUnits,
+      });
+
+      await History.create({
+        user: userId,
+        userName: user.name,
+        propertyId: req.body.propertyId,
+        genaratedPropertyId: property.id,
+        invested:property.id,
+        price: 100,
+        units: req.body.units,
+        id:userId+Date.now()+Math.floor(Math.random() * 9000000000)+'id'
       });
 
       holding.investments.forEach(async (ele) => {
@@ -179,8 +201,6 @@ router.post("/investinlistedproperty", getUser, async (req, res) => {
     price: req.body.price,
   });
 
-  
-
   let holding = await Holding.findOne({
     user: userId,
     propertyId: req.body.propertyId,
@@ -206,7 +226,9 @@ router.post("/investinlistedproperty", getUser, async (req, res) => {
   let time = Math.abs(soldDate - investedDate);
   let holdingSec = Math.ceil(time / 1000);
 
-  const user = await User.findOne({ __id: userId });
+  const user = await User.findById(userId)
+  
+
 
   const property = await Properties.findById(req.body.propertyId);
 
@@ -229,6 +251,17 @@ router.post("/investinlistedproperty", getUser, async (req, res) => {
           Math.random() +
           "@" +
           Math.floor(Math.random() * 900000),
+      });
+
+      await History.create({
+        user: userId,
+        userName: user.name,
+        propertyId: req.body.propertyId,
+        genaratedPropertyId: listedProperty.genaratedPropertyId,
+        invested: listedProperty.genaratedPropertyId,
+        price: req.body.price,
+        units: req.body.units,
+        id:userId+Date.now()+Math.floor(Math.random() * 9000000000)+'id'
       });
 
       if (!holding) {
@@ -367,6 +400,17 @@ router.post("/investinlistedproperty", getUser, async (req, res) => {
         });
         await sellerRental.updateOne({
           rentalIncome: sellerRental.rentalIncome + rentalIncome,
+        });
+
+        await History.create({
+          user: userId,
+          userName: user.name,
+          propertyId: req.body.propertyId,
+          genaratedPropertyId: listedProperty.genaratedPropertyId,
+          invested: listedProperty.genaratedPropertyId,
+          price: req.body.price,
+          units: req.body.units,
+          id:userId+Date.now()+Math.floor(Math.random() * 9000000000)+'id'
         });
         res.json({ resMSG });
       }

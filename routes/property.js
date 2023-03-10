@@ -6,6 +6,7 @@ const router = express.Router();
 const User = require("../models/User");
 const upload = require("../middleware/upload");
 const getUser = require("../middleware/fetchUser");
+const History = require("../models/History");
 
 //Route 1: Fetch User Specific Pending Properties
 router.get("/specificpendingproperties", getUser, async (req, res) => {
@@ -79,6 +80,16 @@ router.post("/addproperty", upload.single("img"), getUser, async (req, res) => {
       city: req.body.city,
       zipCode: req.body.zipCode,
       img: req.file.path,
+    });
+    await History.create({
+      user: userId,
+      userName: user.name,
+      propertyId: newProperty._id,
+      genaratedPropertyId: id,
+      added: id,
+      price: 100,
+      units: req.body.price / 100,
+      id: userId + Date.now() + Math.floor(Math.random() * 9000000000) + "id",
     });
     success = true;
     let responseMsg = "Property added successfully";
