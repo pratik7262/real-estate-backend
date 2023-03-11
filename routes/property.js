@@ -56,6 +56,7 @@ router.get("/pendingproperties", async (req, res) => {
 //Route 5: Route For Adding Property
 router.post("/addproperty", upload.single("img"), getUser, async (req, res) => {
   let success = false;
+  let resMSG = "Property added successfully";
   try {
     const userId = req.user.id;
     const user = await User.findOne({ _id: userId });
@@ -92,23 +93,26 @@ router.post("/addproperty", upload.single("img"), getUser, async (req, res) => {
       id: userId + Date.now() + Math.floor(Math.random() * 9000000000) + "id",
     });
     success = true;
-    let responseMsg = "Property added successfully";
-    res.json({ success, responseMsg });
+
+    res.json({ success, resMSG });
   } catch (error) {
-    res.json({ error });
+    resMSG='Please Add Fields Properly'
+    res.json({ resMSG});
   }
 });
 
 //Route 6: Route For Approve Pending Properties
 router.get("/approveproperty/:id", async (req, res) => {
+  let resMSG= "Property Approved" 
   try {
     const propertyId = req.params.id;
     const pendingProperty = await Properties.findOne({ _id: propertyId });
     await pendingProperty.updateOne({ approved: true });
 
-    res.json({ msg: "Property Approved" });
+    res.json({resMSG});
   } catch (error) {
-    res.status(400).json({ error });
+    resMSG='Some Error Occured'
+    res.status(400).json({resMSG});
   }
 });
 
@@ -143,6 +147,7 @@ router.get("/deleteProperty/:id", async (req, res) => {
     resMSG = "Property Removed Successfully";
     res.json({ resMSG });
   } catch (error) {
+    resMSG='Some Error Occured'
     res.status(400).json({ resMSG });
   }
 });
