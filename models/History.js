@@ -18,7 +18,7 @@ const HistorySchema = new Schema({
     type: String,
     default: "-",
   },
- invested: {
+  invested: {
     type: String,
     default: "-",
   },
@@ -32,10 +32,13 @@ const HistorySchema = new Schema({
   price: {
     type: Number,
   },
-  id:{
-    type:String,
-
-  }
+  id: {
+    type: String,
+  },
+  date: {
+    type: Date,
+    default: Date.now(),
+  },
 });
 
 module.exports = mongoose.model("history", HistorySchema);
