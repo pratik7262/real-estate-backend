@@ -61,6 +61,7 @@ router.post("/listproperty", getUser, async (req, res) => {
         price: req.body.price,
         units: req.body.units,
         id: userId + Date.now() + Math.floor(Math.random() * 9000000000) + "id",
+        date: Date.now(),
       });
 
       let remainingUnits = investedProperty.units - req.body.units;
@@ -146,6 +147,7 @@ router.post("/listproperty", getUser, async (req, res) => {
         price: req.body.price,
         units: req.body.units,
         id: userId + Date.now() + Math.floor(Math.random() * 9000000000) + "id",
+        date: Date.now(),
       });
 
       res.json({ resMSG });
@@ -178,151 +180,151 @@ router.get("/alllistedproperty", async (req, res) => {
 router.post("/deleteListedProperty", getUser, async (req, res) => {
   let resMSG = "Some Error Occured";
   try {
-  const userId = req.user.id;
-  let listedProperty = await Listed.findById(req.body.id);
+    const userId = req.user.id;
+    let listedProperty = await Listed.findById(req.body.id);
 
-  let investedProperty = await Invested.findOne({
-    user: userId,
-    propertyId: listedProperty.propertyId,
-    price: listedProperty.oldPrice,
-  });
-
-  let property = await Properties.findById(listedProperty.propertyId);
-
-  let holding = await Holding.findOne({
-    user: userId,
-    propertyId: listedProperty.propertyId,
-  });
-
-  if (!investedProperty) {
-    investedProperty = await Invested.create({
+    let investedProperty = await Invested.findOne({
       user: userId,
       propertyId: listedProperty.propertyId,
-      genaratedPropertyId: listedProperty.genaratedPropertyId,
-      name: listedProperty.name,
-      userName: listedProperty.userName,
       price: listedProperty.oldPrice,
-      units: listedProperty.units,
-      id:
-        Date.now() +
-        "-" +
-        Math.random() +
-        "@" +
-        Math.floor(Math.random() * 900000),
     });
 
-    if (!holding) {
-      holding = await Holding.create({
+    let property = await Properties.findById(listedProperty.propertyId);
+
+    let holding = await Holding.findOne({
+      user: userId,
+      propertyId: listedProperty.propertyId,
+    });
+
+    if (!investedProperty) {
+      investedProperty = await Invested.create({
         user: userId,
         propertyId: listedProperty.propertyId,
-        userName: listedProperty.userName,
+        genaratedPropertyId: listedProperty.genaratedPropertyId,
         name: listedProperty.name,
-        genaratedPropertyId: property.id,
-        type: property.type,
-        subtype: property.subtype,
-        area: property.area,
-        city: property.city,
-        country: property.country,
-        investments: [
-          {
-            date: Date.now(),
-            units: listedProperty.units,
-            price: listedProperty.oldPrice,
-            id: investedProperty.id,
-          },
-        ],
+        userName: listedProperty.userName,
+        price: listedProperty.oldPrice,
+        units: listedProperty.units,
+        id:
+          Date.now() +
+          "-" +
+          Math.random() +
+          "@" +
+          Math.floor(Math.random() * 900000),
       });
-    } else if (holding.investments.length !== 0) {
-      let newInvestment = holding.investments;
-      let eleNotAvl = false;
-      holding.investments.forEach(async (ele, index) => {
-        if (ele.price === listedProperty.oldPrice) {
-          let newElement = {
-            units: ele.units + parseInt(listedProperty.units),
-            price: ele.price,
-            id: ele.id,
-          };
-          let index = holding.investments.indexOf(ele);
-          if (index !== -1) {
-            newInvestment.splice(index, 1);
+
+      if (!holding) {
+        holding = await Holding.create({
+          user: userId,
+          propertyId: listedProperty.propertyId,
+          userName: listedProperty.userName,
+          name: listedProperty.name,
+          genaratedPropertyId: property.id,
+          type: property.type,
+          subtype: property.subtype,
+          area: property.area,
+          city: property.city,
+          country: property.country,
+          investments: [
+            {
+              date: Date.now(),
+              units: listedProperty.units,
+              price: listedProperty.oldPrice,
+              id: investedProperty.id,
+            },
+          ],
+        });
+      } else if (holding.investments.length !== 0) {
+        let newInvestment = holding.investments;
+        let eleNotAvl = false;
+        holding.investments.forEach(async (ele, index) => {
+          if (ele.price === listedProperty.oldPrice) {
+            let newElement = {
+              units: ele.units + parseInt(listedProperty.units),
+              price: ele.price,
+              id: ele.id,
+            };
+            let index = holding.investments.indexOf(ele);
+            if (index !== -1) {
+              newInvestment.splice(index, 1);
+              newInvestment.push(newElement);
+              await holding.updateOne({ investments: newInvestment });
+            }
+            return;
+          } else if (ind === holding.investments.length - 1) {
+            let newElement = {
+              date: Date.now(),
+              units: listedProperty.units,
+              price: listedProperty.oldPrice,
+              id: investedProperty.id,
+            };
             newInvestment.push(newElement);
             await holding.updateOne({ investments: newInvestment });
           }
-          return;
-        } else if (ind === holding.investments.length - 1) {
-          let newElement = {
-            date: Date.now(),
-            units: listedProperty.units,
-            price: listedProperty.oldPrice,
-            id: investedProperty.id,
-          };
-          newInvestment.push(newElement);
-          await holding.updateOne({ investments: newInvestment });
+        });
+        if (eleNotAvl) {
         }
-      });
-      if (eleNotAvl) {
+      } else {
+        let newInvestment = holding.investments;
+        let newElement = {
+          date: Date.now(),
+          units: listedProperty.units,
+          price: listedProperty.oldPrice,
+          id: investedProperty.id,
+        };
+        newInvestment.push(newElement);
+        await holding.updateOne({ investments: newInvestment });
       }
+
+      await listedProperty.deleteOne();
     } else {
-      let newInvestment = holding.investments;
-      let newElement = {
-        date: Date.now(),
-        units: listedProperty.units,
-        price: listedProperty.oldPrice,
-        id: investedProperty.id,
-      };
-      newInvestment.push(newElement);
-      await holding.updateOne({ investments: newInvestment });
-    }
+      let actualUnits = investedProperty.units + listedProperty.units;
+      await investedProperty.updateOne({ units: actualUnits });
 
-    await listedProperty.deleteOne();
-  } else {
-    let actualUnits = investedProperty.units + listedProperty.units;
-    await investedProperty.updateOne({ units: actualUnits });
+      if (holding.investments.length !== 0) {
+        let newInvestment = holding.investments;
 
-    if (holding.investments.length !== 0) {
-      let newInvestment = holding.investments;
-
-      holding.investments.forEach(async (ele, ind) => {
-        if (ele.price === listedProperty.oldPrice) {
-          let newElement = {
-            units: ele.units + parseInt(listedProperty.units),
-            price: ele.price,
-            id: ele.id,
-          };
-          let index = holding.investments.indexOf(ele);
-          if (index !== -1) {
-            newInvestment.splice(index, 1);
+        holding.investments.forEach(async (ele, ind) => {
+          if (ele.price === listedProperty.oldPrice) {
+            let newElement = {
+              units: ele.units + parseInt(listedProperty.units),
+              price: ele.price,
+              id: ele.id,
+            };
+            let index = holding.investments.indexOf(ele);
+            if (index !== -1) {
+              newInvestment.splice(index, 1);
+              newInvestment.push(newElement);
+              await holding.updateOne({ investments: newInvestment });
+            }
+            return;
+          } else if (ind === holding.investments.length - 1) {
+            let newElement = {
+              date: Date.now(),
+              units: listedProperty.units,
+              price: listedProperty.oldPrice,
+              id: investedProperty.id,
+            };
             newInvestment.push(newElement);
             await holding.updateOne({ investments: newInvestment });
           }
-          return;
-        } else if (ind === holding.investments.length - 1) {
-          let newElement = {
-            date: Date.now(),
-            units: listedProperty.units,
-            price: listedProperty.oldPrice,
-            id: investedProperty.id,
-          };
-          newInvestment.push(newElement);
-          await holding.updateOne({ investments: newInvestment });
-        }
-      });
-    } else {
-      let newInvestment = holding.investments;
-      let newElement = {
-        date: Date.now(),
-        units: listedProperty.units,
-        price: listedProperty.oldPrice,
-        id: investedProperty.id,
-      };
-      newInvestment.push(newElement);
-      await holding.updateOne({ investments: newInvestment });
+        });
+      } else {
+        let newInvestment = holding.investments;
+        let newElement = {
+          date: Date.now(),
+          units: listedProperty.units,
+          price: listedProperty.oldPrice,
+          id: investedProperty.id,
+        };
+        newInvestment.push(newElement);
+        await holding.updateOne({ investments: newInvestment });
+      }
+      await listedProperty.deleteOne();
     }
-    await listedProperty.deleteOne();
-  }
 
-  resMSG = "Property Removed Successfully";
-  res.json({ resMSG });
+    resMSG = "Property Removed Successfully";
+    res.json({ resMSG });
   } catch (error) {
     res.status(400).json({ resMSG });
   }

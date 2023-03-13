@@ -59,7 +59,8 @@ router.post("/invest", getUser, async (req, res) => {
         invested: property.id,
         price: 100,
         units: req.body.units,
-        id:userId+Date.now()+Math.floor(Math.random() * 9000000000)+'id'
+        id: userId + Date.now() + Math.floor(Math.random() * 9000000000) + "id",
+        date: Date.now(),
       });
 
       rental = await Rental.create({
@@ -144,10 +145,11 @@ router.post("/invest", getUser, async (req, res) => {
         userName: user.name,
         propertyId: req.body.propertyId,
         genaratedPropertyId: property.id,
-        invested:property.id,
+        invested: property.id,
         price: 100,
         units: req.body.units,
-        id:userId+Date.now()+Math.floor(Math.random() * 9000000000)+'id'
+        id: userId + Date.now() + Math.floor(Math.random() * 9000000000) + "id",
+        date: Date.now(),
       });
 
       holding.investments.forEach(async (ele) => {
@@ -226,9 +228,7 @@ router.post("/investinlistedproperty", getUser, async (req, res) => {
   let time = Math.abs(soldDate - investedDate);
   let holdingSec = Math.ceil(time / 1000);
 
-  const user = await User.findById(userId)
-  
-
+  const user = await User.findById(userId);
 
   const property = await Properties.findById(req.body.propertyId);
 
@@ -261,7 +261,8 @@ router.post("/investinlistedproperty", getUser, async (req, res) => {
         invested: listedProperty.genaratedPropertyId,
         price: req.body.price,
         units: req.body.units,
-        id:userId+Date.now()+Math.floor(Math.random() * 9000000000)+'id'
+        id: userId + Date.now() + Math.floor(Math.random() * 9000000000) + "id",
+        date: Date.now(),
       });
 
       if (!holding) {
@@ -410,7 +411,9 @@ router.post("/investinlistedproperty", getUser, async (req, res) => {
           invested: listedProperty.genaratedPropertyId,
           price: req.body.price,
           units: req.body.units,
-          id:userId+Date.now()+Math.floor(Math.random() * 9000000000)+'id'
+          id:
+            userId + Date.now() + Math.floor(Math.random() * 9000000000) + "id",
+          date: Date.now(),
         });
         res.json({ resMSG });
       }

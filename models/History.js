@@ -37,7 +37,6 @@ const HistorySchema = new Schema({
   },
   date: {
     type: Date,
-    default: Date.now(),
   },
 });
 

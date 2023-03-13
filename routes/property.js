@@ -91,28 +91,29 @@ router.post("/addproperty", upload.single("img"), getUser, async (req, res) => {
       price: 100,
       units: req.body.price / 100,
       id: userId + Date.now() + Math.floor(Math.random() * 9000000000) + "id",
+      date: Date.now(),
     });
     success = true;
 
     res.json({ success, resMSG });
   } catch (error) {
-    resMSG='Please Add Fields Properly'
-    res.json({ resMSG});
+    resMSG = "Please Add Fields Properly";
+    res.json({ resMSG });
   }
 });
 
 //Route 6: Route For Approve Pending Properties
 router.get("/approveproperty/:id", async (req, res) => {
-  let resMSG= "Property Approved" 
+  let resMSG = "Property Approved";
   try {
     const propertyId = req.params.id;
     const pendingProperty = await Properties.findOne({ _id: propertyId });
     await pendingProperty.updateOne({ approved: true });
 
-    res.json({resMSG});
+    res.json({ resMSG });
   } catch (error) {
-    resMSG='Some Error Occured'
-    res.status(400).json({resMSG});
+    resMSG = "Some Error Occured";
+    res.status(400).json({ resMSG });
   }
 });
 
@@ -147,7 +148,7 @@ router.get("/deleteProperty/:id", async (req, res) => {
     resMSG = "Property Removed Successfully";
     res.json({ resMSG });
   } catch (error) {
-    resMSG='Some Error Occured'
+    resMSG = "Some Error Occured";
     res.status(400).json({ resMSG });
   }
 });
