@@ -6,8 +6,7 @@ const jwt = require("jsonwebtoken");
 const router = express.Router();
 const getUser = require("../middleware/fetchUser");
 const sendEmail = require("../utils/email");
-require('dotenv').config();
-
+require("dotenv").config();
 
 //Create User Endpont login not required
 router.post(
@@ -48,37 +47,36 @@ router.post(
           id: user.id,
         },
       };
-    
+
       const authToken = jwt.sign(data, process.env.JWT_SECRET);
 
+      const msg = `${process.env.BASE_URL}api/auth/verify/${user._id}/${authToken}`;
+      await sendEmail(req.body.email, "VERIFY EMAIL", msg);
 
-      const msg=`${process.env.BASE_URL}api/auth/verify/${user._id}/${authToken}`;
-      // await sendEmail(req.body.email,"VERIFY EMAIL",msg)
-
-      const responseMsg='Verifation link is sent to your email please verify your account';
-      success=true
-      res.json({ success,responseMsg});
+      const responseMsg =
+        "Verifation link is sent to your email please verify your account";
+      success = true;
+      res.json({ success, responseMsg });
     } catch (error) {
       res.json({ success, error });
     }
   }
 );
 
-
-
 router.get("/verify/:id/:token", async (req, res) => {
   try {
     const user = await User.findOne({ _id: req.params.id });
     if (!user) return res.status(400).send("Invalid link");
-  
-    await user.updateOne({verified: true });
 
-    res.send('<h1>YOUR EMAIL HAS BEEN VERIFIED SUCCESSFULLY GOT TO LOGIN PAGE FOR LOGIN</h1>');
+    await user.updateOne({ verified: true });
+
+    res.send(
+      "<h1>YOUR EMAIL HAS BEEN VERIFIED SUCCESSFULLY GOT TO LOGIN PAGE FOR LOGIN</h1>"
+    );
   } catch (error) {
-    res.status(400).send({error});
+    res.status(400).send({ error });
   }
 });
-
 
 router.post(
   "/signin",
@@ -116,11 +114,11 @@ router.post(
         },
       };
 
-      const userId=user._id;
-      const verified=user.verified;
+      const userId = user._id;
+      const verified = user.verified;
       const authToken = jwt.sign(data, process.env.JWT_SECRET);
       success = true;
-      res.json({ success, authToken,verified,userId });
+      res.json({ success, authToken, verified, userId });
     } catch (error) {
       res.json({ success, error });
     }

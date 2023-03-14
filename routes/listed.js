@@ -7,6 +7,7 @@ const Invested = require("../models/Invested");
 const Listed = require("../models/Listed");
 const Properties = require("../models/Prperties");
 const Rental = require("../models/Rental");
+const sendEmail=require('../utils/email')
 const User = require("../models/User");
 
 router.post("/listproperty", getUser, async (req, res) => {
@@ -98,6 +99,9 @@ router.post("/listproperty", getUser, async (req, res) => {
         });
       }
 
+      let msg = `${req.body.units} Units Of Your Property With Id  ${investedProperty.genaratedPropertyId} Listed Successfully In Marketplace For Selling`;
+      await sendEmail(user.email, "Property Is Listed Successfully", msg);
+
       res.json({ resMSG });
     } else {
       let remainingUnits = investedProperty.units - req.body.units;
@@ -150,6 +154,8 @@ router.post("/listproperty", getUser, async (req, res) => {
         date: Date.now(),
       });
 
+      let msg = `${req.body.units} Units Of Your Property With Id  ${investedProperty.genaratedPropertyId} Listed Successfully In Marketplace For Selling`;
+      await sendEmail(user.email, "Property Is Listed Successfully", msg);
       res.json({ resMSG });
     }
   }

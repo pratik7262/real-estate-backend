@@ -7,6 +7,8 @@ const User = require("../models/User");
 const upload = require("../middleware/upload");
 const getUser = require("../middleware/fetchUser");
 const History = require("../models/History");
+const sendEmail = require("../utils/email");
+require("dotenv").config();
 
 //Route 1: Fetch User Specific Pending Properties
 router.get("/specificpendingproperties", getUser, async (req, res) => {
@@ -95,6 +97,11 @@ router.post("/addproperty", upload.single("img"), getUser, async (req, res) => {
     });
     success = true;
 
+    let msg = `
+      Your Property  with Id ${newProperty.id} Is Added Successfully Added And Sent For Approval You Can See Property Status At http://localhost:3000/newproperty/pendingapproval
+    `;
+
+    await sendEmail(user.email, "Property Is Added Successfully", msg);
     res.json({ success, resMSG });
   } catch (error) {
     resMSG = "Please Add Fields Properly";
@@ -109,6 +116,11 @@ router.get("/approveproperty/:id", async (req, res) => {
     const propertyId = req.params.id;
     const pendingProperty = await Properties.findOne({ _id: propertyId });
     await pendingProperty.updateOne({ approved: true });
+    const user =await User.findById(pendingProperty.user)
+
+    let msg=`Your Property With Id ${pendingProperty.id} Is Approved And Available For Investing In New Properties Page => http://localhost:3000/newproperties`
+
+   await sendEmail(user.email,`Your Property Is Approved`,msg)
 
     res.json({ resMSG });
   } catch (error) {
